@@ -19,6 +19,38 @@ var MooShellEditor = new Class({
 				this.editorLabelFX.start('opacity',1);
 			}.bind(this)
 		});
+	},
+	
+	filterByPairs: function(e){
+		var charCode = String.fromCharCode(e.charCode);
+		var stpair = this.options.smartTypingPairs[charCode];
+		if(this.lastPair && ((new Date()).getTime() - this.lastPair.date) < 400){
+		    var se = this.se();
+		    if(this.lastPair.pair == charCode){
+		        e.preventDefault();
+		        return;
+		    }
+		}
+		if (stpair){
+			if ($type(stpair) == 'string') stpair = {pair : stpair};
+			if (!stpair.scope || this.scope(stpair.scope)){
+				var ss = this.ss(), se = this.se(), start = this.getStart();
+				if (ss == se){
+				    this.lastPair = {date: (new Date()).getTime(), pair: stpair.pair};
+					this.value([start,stpair.pair,this.getEnd()]);
+					this.selectRange(start.length,0);
+				} else {
+					e.preventDefault();
+					this.ssKey = ss;
+					this.seKey = se;
+					this.value([start,charCode,this.slice(ss,se),stpair.pair,this.getEnd()]);
+					this.selectRange(ss+1,se-ss);
+				}
+			}
+			stpair = null;
+			return true;
+		}
+		return false;
 	}
 });
 
